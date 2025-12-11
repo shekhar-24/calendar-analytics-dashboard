@@ -28,6 +28,8 @@ const CalendarView = () => {
     const events = useSelector(selectCalendarEvents);
     const [currentDate, setCurrentDate] = React.useState(new Date()); // Start at today
     
+const [view, setView] = React.useState('month');
+
     useEffect(() => {
         dispatch(loadData());
     }, [dispatch]);
@@ -44,6 +46,10 @@ const CalendarView = () => {
 
     const handleNavigate = (newDate) => {
         setCurrentDate(newDate);
+    };
+
+    const handleViewChange = (newView) => {
+        setView(newView);
     };
 
     const eventStyleGetter = () => {
@@ -110,7 +116,8 @@ const CalendarView = () => {
                         eventPropGetter={eventStyleGetter}
                         dayPropGetter={dayPropGetter}
                         views={['month', 'week', 'day']}
-                        defaultView='month'
+                        view={view} // Controlled view
+                        onView={handleViewChange} // Handler for view changes
                         date={currentDate}
                         onNavigate={handleNavigate}
                         popup
