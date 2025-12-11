@@ -24,62 +24,99 @@ const localizer = dateFnsLocalizer({
 
 const CalendarView = () => {
     const dispatch = useDispatch();
+    const { events: rawEvents, selectedDate } = useSelector((state) => state.calendar);
     const events = useSelector(selectCalendarEvents);
+    const [currentDate, setCurrentDate] = React.useState(new Date()); // Start at today
     
     useEffect(() => {
         dispatch(loadData());
     }, [dispatch]);
 
     const handleSelectEvent = (event) => {
-        // When an event ("Data Available") is clicked, we select that date.
-        // We can pass the raw date object or formatted string.
-        // For consistency with the slice, let's just pass the ISO string or date object
-        // The slice expects us to handle the selection.
         const dateStr = format(event.start, 'dd-MM-yyyy');
         dispatch(selectDate(dateStr));
     };
 
     const handleSelectSlot = (slotInfo) => {
-        // Also allow clicking on the empty day cell if we want to handle that case
-        // But for this assignment, we mostly care about dates WITH data.
-        // However, requirements say "Highlight highlighted date"
         const dateStr = format(slotInfo.start, 'dd-MM-yyyy');
-        // Check if we have data for this date? 
-        // The requirement says: "If the selected date has no data, show: 'No data found...'"
-        // So we should allow selecting ANY date.
         dispatch(selectDate(dateStr));
     };
 
-    const eventStyleGetter = (event, start, end, isSelected) => {
-        // Highlight dates that contain data
+    const handleNavigate = (newDate) => {
+        setCurrentDate(newDate);
+    };
+
+    const eventStyleGetter = () => {
         return {
             style: {
                 backgroundColor: '#3182ce',
-                borderRadius: '5px',
-                opacity: 0.8,
+                borderRadius: '4px',
+                opacity: 0.9,
                 color: 'white',
                 border: '0px',
-                display: 'block'
+                display: 'block',
+                fontSize: '0.8em',
+                textAlign: 'center'
             }
         };
     };
 
+    const dayPropGetter = (date) => {
+        const dateStr = format(date, 'dd-MM-yyyy');
+        const isSelected = selectedDate === dateStr;
+        
+        if (isSelected) {
+            return {
+                style: {
+                    backgroundColor: 'rgba(49, 130, 206, 0.1)',
+                    border: '2px solid #3182ce',
+                }
+            };
+        }
+        return {};
+    };
+
     return (
-        <Box height="90vh" p={5}>
-            <Heading mb={4} textAlign="center">Calendar Analytics Dashboard</Heading>
-            <Calendar
-                localizer={localizer}
-                events={events}
-                startAccessor="start"
-                endAccessor="end"
-                style={{ height: 'calc(100% - 60px)' }}
-                onSelectEvent={handleSelectEvent}
-                onSelectSlot={handleSelectSlot}
-                selectable
-                eventPropGetter={eventStyleGetter}
-                views={['month', 'week', 'day']}
-                defaultView='month'
-            />
+        <Box 
+            height="100vh" 
+            p={[2, 4, 6]} // Responsive padding: 2 on mobile, 4 on tablet, 6 on desktop
+            bg="gray.50"
+            display="flex"
+            flexDirection="column"
+        >
+            <Box 
+                bg="white" 
+                p={4} 
+                borderRadius="xl" 
+                boxShadow="lg" 
+                height="100%"
+                display="flex"
+                flexDirection="column"
+            >
+                <Heading mb={6} textAlign="center" color="blue.600" size={['md', 'lg', 'xl']}>
+                    Analytics Dashboard
+                </Heading>
+                
+                <Box flex="1" overflow="hidden">
+                    <Calendar
+                        localizer={localizer}
+                        events={events}
+                        startAccessor="start"
+                        endAccessor="end"
+                        style={{ height: '100%' }}
+                        onSelectEvent={handleSelectEvent}
+                        onSelectSlot={handleSelectSlot}
+                        selectable
+                        eventPropGetter={eventStyleGetter}
+                        dayPropGetter={dayPropGetter}
+                        views={['month', 'week', 'day']}
+                        defaultView='month'
+                        date={currentDate}
+                        onNavigate={handleNavigate}
+                        popup
+                    />
+                </Box>
+            </Box>
         </Box>
     );
 };
